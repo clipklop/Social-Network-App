@@ -1,2 +1,2 @@
-# Social-Network-app
-Flask based Social Network App
+# Flask based Social Network App
+
