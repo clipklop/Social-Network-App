@@ -9,10 +9,6 @@
         <link href='http://fonts.googleapis.com/css?family=Varela+Round' rel='stylesheet' type='text/css'>
         <link rel="stylesheet" href="/static/css/normalize.min.css">
         <link rel="stylesheet" href="/static/css/main.css">
-        <!--[if lt IE 9]>
-            <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
-            <script>window.html5 || document.write('<script src="/static/js/vendor/html5shiv.js"><\/script>')</script>
-        <![endif]-->
     </head>
     <body>
         <header>
@@ -23,7 +19,7 @@
 
             <div class="grid-33">
                 <!-- Say Hi -->
-                <h1>What's up, 
+                <h1>Hey,
                   {% if current_user.is_authenticated %}
                     {{ current_user.username }}
                   {% else %}
@@ -54,7 +50,11 @@
         <div class="row">
           <div class="main">
             <nav>
-              <a href="{{ url_for('index') }}">All</a>
+              <a href="{{ url_for('index') }}">All posts</a>
+              {% if current_user.is_authenticated %}
+                <a href="{{ url_for('stream', username=current_user.username) }}">Following</a>
+                <a href="{{ url_for('post') }}" class="new">Create new post</a>
+                {% endif %}
             </nav>
             {% block content %}{% endblock %}
           </div>

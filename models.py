@@ -22,6 +22,38 @@ class User(UserMixin, pw.Model):
         database = DB
         order_by = ('-joined_at',)  # '-' tells order_by to order DESC
 
+    def get_posts(self):
+        """Gets users posts."""
+        return Post.select().where(Post.user == self)
+
+    def get_stream(self):
+        """Gets users posts, and his following users posts."""
+        return Post.select().where(
+            (Post.user << self.following()) |
+            # << query operator same as 'in'; '|' or
+            (Post.user == self)
+        )
+
+    def following(self):
+        """The users that we are following."""
+        return (
+            User.select().join(
+                Relationship, on=Relationship.to_user
+            ).where(
+                Relationship.from_user == self
+            )
+        )
+
+    def followers(self):
+        """The users following the current user."""
+        return (
+            User.select().join(
+                Relationship, on=Relationship.from_user
+            ).where(
+                Relationship.to_user == self
+            )
+        )
+
     @classmethod
     def create_user(cls, username, email, password, admin=False):
         try:
@@ -35,9 +67,35 @@ class User(UserMixin, pw.Model):
             raise ValueError('User already exits')
 
 
+class Post(pw.Model):
+    timestamp = pw.DateTimeField(default=datetime.datetime.now)
+    user = pw.ForeignKeyField(
+        model=User,
+        backref='posts'
+    )
+    content = pw.TextField()
+
+    class Meta:
+        database = DB
+        order_by = ('-timestamp',)  # could be a tuple or list instead of
+        # a string, to order by few fields;
+        # - sign makes sorting DESC
+
+
+class Relationship(pw.Model):
+    from_user = pw.ForeignKeyField(User, related_name='relationship')
+    to_user = pw.ForeignKeyField(User, related_name='related_to')
+
+    class Meta:
+        database = DB
+        indexes = (
+            (('from_user', 'to_user'), True),
+        )
+
+
 def initialize():
     DB.connect()
-    DB.create_tables([User], safe=True)
+    DB.create_tables([User, Post, Relationship], safe=True)
     DB.close()
 
 
